@@ -158,8 +158,8 @@ export default function Home() {
       <section className="container py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Input Form */}
-          <div className="space-y-6">
-            <Card className="p-8 border-border shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <div className="space-y-6 flex flex-col">
+            <Card className="p-8 border-border shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
               <div className="flex items-center gap-2 mb-6">
                 <Leaf className="w-5 h-5 text-sage-green" />
                 <h3 className="text-2xl font-semibold text-deep-slate">Flower Measurements</h3>
@@ -244,18 +244,18 @@ export default function Home() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 mt-8">
+              <div className="flex gap-3 mt-auto pt-8 border-t border-border">
                 <Button
                   onClick={handleClassify}
                   disabled={loading}
-                  className="flex-1 bg-iris-purple hover:bg-iris-purple/90 text-white font-semibold py-2 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-98"
+                  className="flex-1 bg-iris-purple hover:bg-iris-purple/90 text-white font-semibold py-3 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-98"
                 >
                   {loading ? 'Classifying...' : 'Classify Iris'}
                 </Button>
                 <Button
                   onClick={handleReset}
                   variant="outline"
-                  className="flex-1 border-border text-deep-slate hover:bg-muted"
+                  className="flex-1 border-border text-deep-slate hover:bg-muted py-3"
                 >
                   Reset
                 </Button>
