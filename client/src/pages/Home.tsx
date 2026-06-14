@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -78,258 +78,274 @@ function predictIris(data: IrisData, k: number = 3): PredictionResult {
 }
 
 export default function Home() {
-  const [formData, setFormData] = useState<IrisData>({
-    sepalLength: 5.8,
-    sepalWidth: 3.0,
-    petalLength: 4.3,
-    petalWidth: 1.3,
+  // Use strings for input state to avoid decimal point issues in controlled components
+  const [formData, setFormData] = useState({
+    sepalLength: '5.8',
+    sepalWidth: '3.0',
+    petalLength: '4.3',
+    petalWidth: '1.3',
   });
   
   const [result, setResult] = useState<PredictionResult | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleInputChange = (field: keyof IrisData, value: string) => {
-    const numValue = parseFloat(value) || 0;
-    setFormData(prev => ({ ...prev, [field]: numValue }));
-  };
+  // Helper to get numeric data
+  const getNumericData = (): IrisData => ({
+    sepalLength: parseFloat(formData.sepalLength) || 0,
+    sepalWidth: parseFloat(formData.sepalWidth) || 0,
+    petalLength: parseFloat(formData.petalLength) || 0,
+    petalWidth: parseFloat(formData.petalWidth) || 0,
+  });
 
   const handleClassify = () => {
     setLoading(true);
     // Simulate processing delay
     setTimeout(() => {
-      const prediction = predictIris(formData);
+      const prediction = predictIris(getNumericData());
       setResult(prediction);
       setLoading(false);
-    }, 500);
+    }, 300);
+  };
+
+  // Perform initial classification on mount
+  useEffect(() => {
+    handleClassify();
+  }, []);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleReset = () => {
     setFormData({
-      sepalLength: 5.8,
-      sepalWidth: 3.0,
-      petalLength: 4.3,
-      petalWidth: 1.3,
+      sepalLength: '5.8',
+      sepalWidth: '3.0',
+      petalLength: '4.3',
+      petalWidth: '1.3',
     });
-    setResult(null);
+    // Re-classify with defaults
+    setLoading(true);
+    setTimeout(() => {
+      const prediction = predictIris({
+        sepalLength: 5.8,
+        sepalWidth: 3.0,
+        petalLength: 4.3,
+        petalWidth: 1.3,
+      });
+      setResult(prediction);
+      setLoading(false);
+    }, 300);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream via-white to-cream">
       {/* Header */}
       <header className="border-b border-border bg-white/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container py-4 flex items-center justify-between">
+        <div className="container py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img 
               src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483058610/GGeZGZRS8aFF5PZwK4cNvv/iris-logo-GKJbLJg8M6StwnTm3ik8h6.webp"
               alt="Iris Logo"
-              className="w-10 h-10"
+              className="w-8 h-8"
             />
-            <h1 className="text-2xl font-bold text-iris-purple">Iris Classifier</h1>
+            <h1 className="text-xl font-bold text-iris-purple">Iris Classifier</h1>
           </div>
-          <p className="text-sm text-muted-foreground">Powered by DecodeLabs</p>
+          <p className="text-xs text-muted-foreground hidden sm:block">Powered by DecodeLabs</p>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden py-16">
-        <div className="absolute inset-0 opacity-40">
+      {/* Hero Section - Reduced padding for better visibility */}
+      <section className="relative overflow-hidden py-8 sm:py-12 bg-white/30">
+        <div className="absolute inset-0 opacity-20">
           <img 
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483058610/GGeZGZRS8aFF5PZwK4cNvv/hero-botanical-bg-XKDMnpgtfuNbGJPeXfopJw.webp"
             alt="Botanical background"
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="container relative z-10">
-          <div className="max-w-2xl">
-            <h2 className="text-5xl font-bold mb-4 text-iris-purple">
+        <div className="container relative z-10 text-center sm:text-left">
+          <div className="max-w-2xl mx-auto sm:mx-0">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-iris-purple">
               Discover Your Iris Species
             </h2>
-            <p className="text-lg text-deep-slate mb-2">
-              Enter the measurements of an iris flower and let our AI model classify it using supervised learning.
-            </p>
-            <p className="text-base text-muted-foreground">
-              Trained on the classic Iris dataset, our K-Nearest Neighbors classifier identifies three species: Setosa, Versicolor, and Virginica.
+            <p className="text-base text-deep-slate mb-2">
+              Enter measurements and let our AI classify your flower instantly.
             </p>
           </div>
         </div>
       </section>
 
       {/* Main Content */}
-      <section className="container py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <section className="container py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           {/* Input Form */}
-          <div className="space-y-6 flex flex-col">
-            <Card className="p-8 border-border shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
-              <div className="flex items-center gap-2 mb-6">
-                <Leaf className="w-5 h-5 text-sage-green" />
-                <h3 className="text-2xl font-semibold text-deep-slate">Flower Measurements</h3>
-              </div>
-              
-              <div className="space-y-5">
-                {/* Sepal Length */}
-                <div className="space-y-2">
-                  <Label htmlFor="sepalLength" className="text-base font-medium text-deep-slate">
-                    Sepal Length (cm)
-                  </Label>
-                  <Input
-                    id="sepalLength"
-                    type="number"
-                    step="0.1"
-                    min="4"
-                    max="8"
-                    value={formData.sepalLength}
-                    onChange={(e) => handleInputChange('sepalLength', e.target.value)}
-                    className="border-border focus:ring-iris-purple focus:border-iris-purple"
-                    placeholder="e.g., 5.8"
-                  />
-                  <p className="text-xs text-muted-foreground">Range: 4.0 - 8.0 cm</p>
+          <div className="space-y-6">
+            <Card className="p-6 border-border shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <form onSubmit={(e) => { e.preventDefault(); handleClassify(); }} className="flex flex-col gap-6">
+                <div className="flex items-center gap-2">
+                  <Leaf className="w-5 h-5 text-sage-green" />
+                  <h3 className="text-xl font-semibold text-deep-slate">Flower Measurements</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Sepal Length */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="sepalLength" className="text-sm font-medium text-deep-slate">
+                      Sepal Length (cm)
+                    </Label>
+                    <Input
+                      id="sepalLength"
+                      type="text"
+                      inputMode="decimal"
+                      value={formData.sepalLength}
+                      onChange={(e) => handleInputChange('sepalLength', e.target.value)}
+                      className="border-border focus:ring-iris-purple focus:border-iris-purple"
+                      placeholder="e.g., 5.8"
+                    />
+                    <p className="text-[10px] text-muted-foreground">Range: 4.0 - 8.0 cm</p>
+                  </div>
+
+                  {/* Sepal Width */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="sepalWidth" className="text-sm font-medium text-deep-slate">
+                      Sepal Width (cm)
+                    </Label>
+                    <Input
+                      id="sepalWidth"
+                      type="text"
+                      inputMode="decimal"
+                      value={formData.sepalWidth}
+                      onChange={(e) => handleInputChange('sepalWidth', e.target.value)}
+                      className="border-border focus:ring-iris-purple focus:border-iris-purple"
+                      placeholder="e.g., 3.0"
+                    />
+                    <p className="text-[10px] text-muted-foreground">Range: 2.0 - 4.5 cm</p>
+                  </div>
+
+                  {/* Petal Length */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="petalLength" className="text-sm font-medium text-deep-slate">
+                      Petal Length (cm)
+                    </Label>
+                    <Input
+                      id="petalLength"
+                      type="text"
+                      inputMode="decimal"
+                      value={formData.petalLength}
+                      onChange={(e) => handleInputChange('petalLength', e.target.value)}
+                      className="border-border focus:ring-iris-purple focus:border-iris-purple"
+                      placeholder="e.g., 4.3"
+                    />
+                    <p className="text-[10px] text-muted-foreground">Range: 1.0 - 7.0 cm</p>
+                  </div>
+
+                  {/* Petal Width */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="petalWidth" className="text-sm font-medium text-deep-slate">
+                      Petal Width (cm)
+                    </Label>
+                    <Input
+                      id="petalWidth"
+                      type="text"
+                      inputMode="decimal"
+                      value={formData.petalWidth}
+                      onChange={(e) => handleInputChange('petalWidth', e.target.value)}
+                      className="border-border focus:ring-iris-purple focus:border-iris-purple"
+                      placeholder="e.g., 1.3"
+                    />
+                    <p className="text-[10px] text-muted-foreground">Range: 0.1 - 2.5 cm</p>
+                  </div>
                 </div>
 
-                {/* Sepal Width */}
-                <div className="space-y-2">
-                  <Label htmlFor="sepalWidth" className="text-base font-medium text-deep-slate">
-                    Sepal Width (cm)
-                  </Label>
-                  <Input
-                    id="sepalWidth"
-                    type="number"
-                    step="0.1"
-                    min="2"
-                    max="4.5"
-                    value={formData.sepalWidth}
-                    onChange={(e) => handleInputChange('sepalWidth', e.target.value)}
-                    className="border-border focus:ring-iris-purple focus:border-iris-purple"
-                    placeholder="e.g., 3.0"
-                  />
-                  <p className="text-xs text-muted-foreground">Range: 2.0 - 4.5 cm</p>
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4 border-t border-border">
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 bg-iris-purple hover:bg-iris-purple/90 text-white font-semibold py-2.5 rounded-lg transition-all duration-200"
+                  >
+                    {loading ? 'Classifying...' : 'Classify Iris'}
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleReset}
+                    variant="outline"
+                    className="flex-1 border-border text-deep-slate hover:bg-muted py-2.5"
+                  >
+                    Reset
+                  </Button>
                 </div>
-
-                {/* Petal Length */}
-                <div className="space-y-2">
-                  <Label htmlFor="petalLength" className="text-base font-medium text-deep-slate">
-                    Petal Length (cm)
-                  </Label>
-                  <Input
-                    id="petalLength"
-                    type="number"
-                    step="0.1"
-                    min="1"
-                    max="7"
-                    value={formData.petalLength}
-                    onChange={(e) => handleInputChange('petalLength', e.target.value)}
-                    className="border-border focus:ring-iris-purple focus:border-iris-purple"
-                    placeholder="e.g., 4.3"
-                  />
-                  <p className="text-xs text-muted-foreground">Range: 1.0 - 7.0 cm</p>
-                </div>
-
-                {/* Petal Width */}
-                <div className="space-y-2">
-                  <Label htmlFor="petalWidth" className="text-base font-medium text-deep-slate">
-                    Petal Width (cm)
-                  </Label>
-                  <Input
-                    id="petalWidth"
-                    type="number"
-                    step="0.1"
-                    min="0.1"
-                    max="2.5"
-                    value={formData.petalWidth}
-                    onChange={(e) => handleInputChange('petalWidth', e.target.value)}
-                    className="border-border focus:ring-iris-purple focus:border-iris-purple"
-                    placeholder="e.g., 1.3"
-                  />
-                  <p className="text-xs text-muted-foreground">Range: 0.1 - 2.5 cm</p>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 mt-auto pt-8 border-t border-border">
-                <Button
-                  onClick={handleClassify}
-                  disabled={loading}
-                  className="flex-1 bg-iris-purple hover:bg-iris-purple/90 text-white font-semibold py-3 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-98"
-                >
-                  {loading ? 'Classifying...' : 'Classify Iris'}
-                </Button>
-                <Button
-                  onClick={handleReset}
-                  variant="outline"
-                  className="flex-1 border-border text-deep-slate hover:bg-muted py-3"
-                >
-                  Reset
-                </Button>
-              </div>
+              </form>
             </Card>
           </div>
 
           {/* Results Section */}
           <div className="space-y-6">
             {result ? (
-              <Card className="p-8 border-border shadow-lg bg-gradient-to-br from-white to-cream/50 animate-in fade-in duration-500">
-                <div className="flex items-start gap-4 mb-6">
+              <Card className="p-6 border-border shadow-lg bg-gradient-to-br from-white to-cream/50 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="flex items-start gap-4 mb-4">
                   <Flower className="w-8 h-8 text-iris-purple flex-shrink-0 mt-1" />
                   <div>
-                    <h3 className="text-3xl font-bold text-iris-purple mb-1">
+                    <h3 className="text-2xl font-bold text-iris-purple mb-0.5">
                       {result.species}
                     </h3>
-                    <p className="text-sm text-sage-green font-semibold">
+                    <p className="text-xs text-sage-green font-semibold">
                       Confidence: {result.confidence}%
                     </p>
                   </div>
                 </div>
 
                 {/* Confidence Bar */}
-                <div className="mb-6">
-                  <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                <div className="mb-4">
+                  <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-iris-purple to-sage-green transition-all duration-500"
+                      className="h-full bg-gradient-to-r from-iris-purple to-sage-green transition-all duration-700 ease-out"
                       style={{ width: `${result.confidence}%` }}
                     />
                   </div>
                 </div>
 
                 {/* Description */}
-                <p className="text-base text-deep-slate leading-relaxed mb-6">
+                <p className="text-sm text-deep-slate leading-relaxed mb-6">
                   {result.description}
                 </p>
 
                 {/* Species Info */}
                 <div className="bg-white/60 rounded-lg p-4 border border-border">
-                  <h4 className="font-semibold text-deep-slate mb-3">Measured Features:</h4>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Sepal Length</p>
-                      <p className="font-semibold text-deep-slate">{formData.sepalLength} cm</p>
+                  <h4 className="text-xs font-semibold text-deep-slate mb-2 uppercase tracking-wider">Measured Features:</h4>
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-xs">
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground">Sepal L:</span>
+                      <span className="font-semibold text-deep-slate">{formData.sepalLength} cm</span>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Sepal Width</p>
-                      <p className="font-semibold text-deep-slate">{formData.sepalWidth} cm</p>
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground">Sepal W:</span>
+                      <span className="font-semibold text-deep-slate">{formData.sepalWidth} cm</span>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Petal Length</p>
-                      <p className="font-semibold text-deep-slate">{formData.petalLength} cm</p>
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground">Petal L:</span>
+                      <span className="font-semibold text-deep-slate">{formData.petalLength} cm</span>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Petal Width</p>
-                      <p className="font-semibold text-deep-slate">{formData.petalWidth} cm</p>
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground">Petal W:</span>
+                      <span className="font-semibold text-deep-slate">{formData.petalWidth} cm</span>
                     </div>
                   </div>
                 </div>
               </Card>
             ) : (
-              <Card className="p-8 border-border shadow-lg bg-gradient-to-br from-white to-cream/50 flex flex-col items-center justify-center min-h-96">
-                <Flower className="w-16 h-16 text-sage-green/30 mb-4" />
-                <p className="text-center text-muted-foreground">
-                  Enter flower measurements and click "Classify Iris" to see the prediction.
+              <Card className="p-8 border-border shadow-lg bg-gradient-to-br from-white to-cream/50 flex flex-col items-center justify-center min-h-64">
+                <Flower className="w-12 h-12 text-sage-green/30 mb-4" />
+                <p className="text-center text-sm text-muted-foreground">
+                  Click "Classify Iris" to see the prediction.
                 </p>
               </Card>
             )}
 
             {/* Info Card */}
-            <Card className="p-6 border-border shadow-md bg-white/80">
-              <h4 className="font-semibold text-deep-slate mb-3">How It Works</h4>
-              <ul className="space-y-2 text-sm text-deep-slate">
+            <Card className="p-5 border-border shadow-md bg-white/80">
+              <h4 className="font-semibold text-sm text-deep-slate mb-3">How It Works</h4>
+              <ul className="space-y-2 text-xs text-deep-slate">
                 <li className="flex gap-2">
                   <span className="text-iris-purple font-bold">1.</span>
                   <span>Enter the four measurements of your iris flower</span>
@@ -349,10 +365,10 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-white/50 backdrop-blur-sm mt-16">
-        <div className="container py-8 text-center text-sm text-muted-foreground">
+      <footer className="border-t border-border bg-white/50 backdrop-blur-sm mt-8">
+        <div className="container py-6 text-center text-[10px] text-muted-foreground">
           <p>Project 2: Data Classification Using AI | Powered by DecodeLabs</p>
-          <p className="mt-2">Built with React, Tailwind CSS, and Machine Learning</p>
+          <p className="mt-1">Built with React, Tailwind CSS, and Machine Learning</p>
         </div>
       </footer>
     </div>
