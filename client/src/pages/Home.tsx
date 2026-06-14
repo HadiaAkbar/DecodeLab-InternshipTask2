@@ -23,6 +23,7 @@ interface PredictionResult {
   species: string;
   confidence: number;
   description: string;
+  image: string;
 }
 
 // Training data (simplified KNN model)
@@ -70,10 +71,17 @@ function predictIris(data: IrisData, k: number = 3): PredictionResult {
     'Virginica': 'The Iris Virginica is the largest of the three species, with longer petals and sepals. It\'s native to the southeastern United States and displays deep purple hues.',
   };
   
+  const images: { [key: string]: string } = {
+    'Setosa': '/images/iris-setosa.png',
+    'Versicolor': '/images/iris-versicolor.png',
+    'Virginica': '/images/iris-virginica.png',
+  };
+  
   return {
     species,
     confidence: Math.round(confidence),
     description: descriptions[species] || 'Unknown species',
+    image: images[species] || '',
   };
 }
 
@@ -282,57 +290,80 @@ export default function Home() {
           {/* Results Section */}
           <div className="space-y-6">
             {result ? (
-              <Card className="p-6 border-border shadow-lg bg-gradient-to-br from-white to-cream/50 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                <div className="flex items-start gap-4 mb-4">
-                  <Flower className="w-8 h-8 text-iris-purple flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="text-2xl font-bold text-iris-purple mb-0.5">
-                      {result.species}
-                    </h3>
-                    <p className="text-xs text-sage-green font-semibold">
-                      Confidence: {result.confidence}%
+              <>
+                {/* Main Result Card with Image */}
+                <Card className="p-6 border-border shadow-lg bg-gradient-to-br from-white to-cream/50 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <div className="flex flex-col gap-6">
+                    {/* Species Header */}
+                    <div className="flex items-start gap-4">
+                      <Flower className="w-8 h-8 text-iris-purple flex-shrink-0 mt-1" />
+                      <div>
+                        <h3 className="text-3xl font-bold text-iris-purple mb-1">
+                          {result.species}
+                        </h3>
+                        <p className="text-sm text-sage-green font-semibold">
+                          Confidence: {result.confidence}%
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Confidence Bar */}
+                    <div>
+                      <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-iris-purple to-sage-green transition-all duration-700 ease-out"
+                          style={{ width: `${result.confidence}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">Model confidence score</p>
+                    </div>
+
+                    {/* Iris Image */}
+                    {result.image && (
+                      <div className="flex justify-center py-4">
+                        <div className="relative w-48 h-48 rounded-full border-4 border-iris-purple/20 bg-white/50 flex items-center justify-center overflow-hidden shadow-lg">
+                          <img
+                            src={result.image}
+                            alt={result.species}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Description */}
+                    <p className="text-sm text-deep-slate leading-relaxed">
+                      {result.description}
                     </p>
-                  </div>
-                </div>
 
-                {/* Confidence Bar */}
-                <div className="mb-4">
-                  <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-iris-purple to-sage-green transition-all duration-700 ease-out"
-                      style={{ width: `${result.confidence}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Description */}
-                <p className="text-sm text-deep-slate leading-relaxed mb-6">
-                  {result.description}
-                </p>
-
-                {/* Species Info */}
-                <div className="bg-white/60 rounded-lg p-4 border border-border">
-                  <h4 className="text-xs font-semibold text-deep-slate mb-2 uppercase tracking-wider">Measured Features:</h4>
-                  <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-xs">
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground">Sepal L:</span>
-                      <span className="font-semibold text-deep-slate">{formData.sepalLength} cm</span>
-                    </div>
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground">Sepal W:</span>
-                      <span className="font-semibold text-deep-slate">{formData.sepalWidth} cm</span>
-                    </div>
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground">Petal L:</span>
-                      <span className="font-semibold text-deep-slate">{formData.petalLength} cm</span>
-                    </div>
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground">Petal W:</span>
-                      <span className="font-semibold text-deep-slate">{formData.petalWidth} cm</span>
+                    {/* Species Info */}
+                    <div className="bg-white/60 rounded-lg p-4 border border-border">
+                      <h4 className="text-xs font-semibold text-deep-slate mb-3 uppercase tracking-wider">Measured Features:</h4>
+                      <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-xs">
+                        <div className="flex justify-between border-b border-border/50 pb-1">
+                          <span className="text-muted-foreground">Sepal L:</span>
+                          <span className="font-semibold text-deep-slate">{formData.sepalLength} cm</span>
+                        </div>
+                        <div className="flex justify-between border-b border-border/50 pb-1">
+                          <span className="text-muted-foreground">Sepal W:</span>
+                          <span className="font-semibold text-deep-slate">{formData.sepalWidth} cm</span>
+                        </div>
+                        <div className="flex justify-between border-b border-border/50 pb-1">
+                          <span className="text-muted-foreground">Petal L:</span>
+                          <span className="font-semibold text-deep-slate">{formData.petalLength} cm</span>
+                        </div>
+                        <div className="flex justify-between border-b border-border/50 pb-1">
+                          <span className="text-muted-foreground">Petal W:</span>
+                          <span className="font-semibold text-deep-slate">{formData.petalWidth} cm</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Card>
+                </Card>
+              </>
             ) : (
               <Card className="p-8 border-border shadow-lg bg-gradient-to-br from-white to-cream/50 flex flex-col items-center justify-center min-h-64">
                 <Flower className="w-12 h-12 text-sage-green/30 mb-4" />
